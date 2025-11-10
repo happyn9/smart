@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# Databases
+*.db
+
+# Uploads folder (temporary files)
+uploads/
+
+# Environment variables
+.env
+
+# VSCode settings (if any)
+.vscode/
+
+#happy9
