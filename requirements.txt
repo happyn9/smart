@@ -7,7 +7,7 @@ pydantic_core>=2.33.2
 starlette>=0.27.0
 
 # Database
-psycopg[binary]>=3.2.1   # psycopg3 compatible Python 3.13
+psycopg2-binary==2.9.7
 
 # Security / Auth
 bcrypt>=3.2.2
