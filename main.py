@@ -443,8 +443,6 @@ def seed_cartes():
 
 
 
-# main.py
-
 @app.get("/commandes/{commande_id}/view")
 def view_commande(commande_id: int, db: Session = Depends(get_db)):
     """
@@ -458,31 +456,33 @@ def view_commande(commande_id: int, db: Session = Depends(get_db)):
     user = commande.user
     carte = commande.carte
 
-    # Génération du QR code
+    # Générer QR code
     react_url = f"http://192.168.0.103:5173/user/{user.id}"
     qr = qrcode.make(react_url)
     buffer = io.BytesIO()
     qr.save(buffer, format="PNG")
     qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+    qr_data = f"data:image/png;base64,{qr_b64}"
 
-    # Préparation des données à envoyer
-    data = {
-        "commande_id": commande.id,
-        "status": commande.status,
-        "carte": {
-            "titre": carte.titre,
-            "prix": carte.prix,
-            "description": carte.description
+    return {
+        "commande": {
+            "id": commande.id,
+            "status": commande.status,
+            "created_at": commande.created_at
         },
         "user": {
+            "id": user.id,
             "name": user.name,
             "email": user.email,
-            "photo": f"http://192.168.0.103:8000/{user.photo}" if user.photo else None
         },
-        "qrcode": f"data:image/png;base64,{qr_b64}"
+        "carte": {
+            "id": carte.id,
+            "titre": carte.titre,
+            "description": carte.description,
+            "prix": carte.prix
+        },
+        "qrcode": qr_data
     }
-
-    return data
 
 
 
