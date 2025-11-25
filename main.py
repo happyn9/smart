@@ -69,14 +69,24 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, user.email):
         raise HTTPException(status_code=400, detail="Email déjà utilisé")
-    return crud.create_user(db, user)
+    new_user = crud.create_user(db, user)
+    
+    # Envoi email de bienvenue
+    email_sender.send_account_creation_email(new_user.name, new_user.email)
+    
+    return new_user
 
 @app.post("/login")
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, user.email)
     if not db_user or not utils.verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+    
     token = utils.create_access_token({"sub": str(db_user.id)})
+    
+    # Envoi notification de connexion
+    email_sender.send_login_notification_email(db_user.name, db_user.email)
+    
     return {"access_token": token, "token_type": "bearer", "name": db_user.name, "role": db_user.role}
 
 @app.get("/profile/me", response_model=schemas.UserOut)
