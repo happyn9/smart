@@ -9,6 +9,9 @@ from pathlib import Path
 import shutil, os, qrcode, io, base64
 from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi.responses import HTMLResponse
+from config import settings
+
+
 
 import models, schemas, crud, utils, database, email_sender
 
@@ -30,6 +33,17 @@ app.add_middleware(
 
 # ---------------- DB ---------------- #
 models.Base.metadata.create_all(bind=database.engine)
+
+
+FRONTEND_URL = settings.FRONTEND_URL
+BACKEND_URL = settings.BACKEND_URL
+ADMIN_EMAIL = settings.ADMIN_EMAIL
+EMAIL_ADDRESS = settings.EMAIL_ADDRESS
+EMAIL_PASSWORD = settings.EMAIL_PASSWORD
+SENDGRID_API_KEY = settings.SENDGRID_API_KEY
+SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URL
+
+
 
 def get_db():
     db = database.SessionLocal()
@@ -154,6 +168,8 @@ def change_password(user_id: int, passwords: schemas.PasswordChange, db: Session
     db.commit()
     return {"msg": "Mot de passe changé avec succès"}
 
+
+
 @app.get("/profile/{user_id}/qrcode")
 def generate_qr(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
@@ -161,7 +177,7 @@ def generate_qr(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
 
     # Lien qui sera ouvert quand on scanne le QR
-    react_url = f"http://192.168.0.103:5173/user/{user.id}"
+    react_url = f"{FRONTEND_URL}/user/{user.id}"
 
     # Génération du QR
     qr = qrcode.make(react_url)
@@ -178,7 +194,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
 
     if user.photo and not user.photo.startswith("http"):
-        user.photo = f"http://192.168.0.103:8000/{user.photo}"
+        user.photo = f"{BACKEND_URL}/{user.photo}"
 
     return user
 
@@ -199,7 +215,7 @@ def forgot_password(email: str = Body(...), db: Session = Depends(get_db)):
     expire = datetime.utcnow() + timedelta(minutes=RESET_EXPIRE_MINUTES)
     reset_token = jose_jwt.encode({"sub": str(user.id), "exp": expire}, RESET_SECRET_KEY, algorithm=RESET_ALGORITHM)
 
-    reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
+    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
 
     subject = "Réinitialisation du mot de passe 🔑"
     body = f"Bonjour {user.name},\n\nPour réinitialiser votre mot de passe, cliquez sur ce lien :\n{reset_link}\n\nCe lien expire dans {RESET_EXPIRE_MINUTES} minutes."
@@ -316,7 +332,7 @@ def order_card(
     db.refresh(new_commande)
 
     # --- Génération du QR code ---
-    react_url = f"http://192.168.0.103:5173/user/{current_user.id}"
+    react_url = f"{FRONTEND_URL}/user/{current_user.id}"
     qr = qrcode.make(react_url)
     buffer = io.BytesIO()
     qr.save(buffer, format="PNG")
@@ -328,7 +344,7 @@ def order_card(
     body = f"""
     <html>
       <body style="font-family: Arial, sans-serif;">
-        <h3>Bonjour Admin 👋</h3>
+        <h3>Bonjour @Rinedi 👋</h3>
         <p>Une nouvelle commande a été passée :</p>
 
         <ul>
@@ -345,7 +361,7 @@ def order_card(
         </a>
 
         <p style="margin-top:15px;">
-          🔗 Vous pouvez aussi <a href="http://192.168.0.104:5173/commandes/{new_commande.id}/view">voir la carte complète</a> et l’imprimer depuis le navigateur.
+          🔗 Vous pouvez aussi <a href="{FRONTEND_URL}/commandes/{new_commande.id}/view">voir la carte complète</a> et l’imprimer depuis le navigateur.
         </p>
 
         <p>Merci 🙏</p>
@@ -384,7 +400,7 @@ def admin_print_commande(commande_id: int, current_user: models.User = Depends(g
     carte = commande.carte
 
     # Générer le QR pour le user (base64)
-    react_url = f"http://192.168.0.103:5173/user/{user.id}"
+    react_url = f"{FRONTEND_URL}/user/{user.id}"
     qr = qrcode.make(react_url)
     buffer = io.BytesIO()
     qr.save(buffer, format="PNG")
@@ -464,7 +480,7 @@ def view_commande(commande_id: int, db: Session = Depends(get_db)):
     carte = commande.carte
 
     # Générer QR code
-    react_url = f"http://192.168.0.103:5173/user/{user.id}"
+    react_url = f"{FRONTEND_URL}/user/{user.id}"
     qr = qrcode.make(react_url)
     buffer = io.BytesIO()
     qr.save(buffer, format="PNG")
