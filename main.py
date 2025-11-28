@@ -18,8 +18,7 @@ import models, schemas, crud, utils, database, email_sender
 app = FastAPI()
 
 origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
+    "https://easytechcongo.com",
     "https://smart-10.onrender.com",
 ]
 
