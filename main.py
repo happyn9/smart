@@ -222,8 +222,6 @@ def forgot_password(email: str = Body(...), db: Session = Depends(get_db)):
 
     return {"msg": "Si cet email existe, un lien de réinitialisation a été envoyé."}
 
-
-
 @app.post("/reset-password")
 def reset_password(
     body: dict = Body(...),
