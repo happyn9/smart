@@ -18,7 +18,7 @@ import models, schemas, crud, utils, database, email_sender
 app = FastAPI()
 
 origins = [
-    "https://smart-card.easytechcongo.com"
+    "https://smart-card.easytechcongo.com",
     "https://smart-10.onrender.com",
 ]
 
