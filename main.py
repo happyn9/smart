@@ -18,9 +18,8 @@ import models, schemas, crud, utils, database, email_sender
 app = FastAPI()
 
 origins = [
-    "https://easytechcongo.com",
+    "https://smart-card.easytechcongo.com"
     "https://smart-10.onrender.com",
-    "http://localhost:5173"
 ]
 
 app.add_middleware(
@@ -221,7 +220,7 @@ def forgot_password(email: str = Body(...), db: Session = Depends(get_db)):
     body = f"Bonjour {user.name},\n\nPour réinitialiser votre mot de passe, cliquez sur ce lien :\n{reset_link}\n\nCe lien expire dans {RESET_EXPIRE_MINUTES} minutes."
     email_sender.send_email(user.email, subject, body)
 
-    return {"msg": "Si cet email existe, un lien de réinitialisation a été envoyé."}
+    return {"msg": "Vérifie ta boîte mail."}
 
 @app.post("/reset-password")
 def reset_password(
