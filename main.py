@@ -20,6 +20,7 @@ app = FastAPI()
 origins = [
     "https://smart-card.easytechcongo.com",
     "https://smart-10.onrender.com",
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
